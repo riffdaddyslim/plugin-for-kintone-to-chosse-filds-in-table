@@ -1,27 +1,79 @@
-jQuery.noConflict();
-
-(function($, PLUGIN_ID) {
+((PLUGIN_ID) => {
   'use strict';
 
-  var $form = $('.js-submit-settings');
-  var $cancelButton = $('.js-cancel-button');
-  var $message = $('.js-text-message');
-  if (!($form.length > 0 && $cancelButton.length > 0 && $message.length > 0)) {
-    throw new Error('Required elements do not exist.');
-  }
-  var config = kintone.plugin.app.getConfig(PLUGIN_ID);
+  const client = new KintoneRestAPIClient({});
 
-  if (config.message) {
-    $message.val(config.message);
-  }
-  $form.on('submit', function(e) {
-    e.preventDefault();
-    kintone.plugin.app.setConfig({message: $message.val()}, function() {
-      alert('The plug-in settings have been saved. Please update the app!');
-      window.location.href = '../../flow?app=' + kintone.app.getId();
+  // Get the elements
+  const fieldSelection = document.getElementById('field-selection');
+  const bgColor = document.getElementById('bg-color');
+  const saveButton = document.getElementById('save');
+  const cancelButton = document.getElementById('cancel');
+
+  // Escape HTML
+  const escapeHtml = (htmlStr) => {
+    return htmlStr
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  };
+
+  // Set the saved data if it exists
+  const setDefault = () => {
+    const conf = kintone.plugin.app.getConfig(PLUGIN_ID);
+    if (conf) {
+      fieldSelection.value = conf.fieldSelection;
+      bgColor.value = conf.bgColor;
+    }
+  };
+
+  // Set the user selection field
+  const setUserSelection = () => {
+    const APP_ID = kintone.app.getId();
+    const params = {
+      app: APP_ID,
+      preview: true
+    };
+    return client.app.getFormFields(params).then((resp) => {
+      for (const key of Object.keys(resp.properties)) {
+        if (!resp.properties[key]) {
+          continue;
+        }
+        const option = document.createElement('option');
+        const prop = resp.properties[key];
+        if (prop.type === 'USER_SELECT') {
+          option.setAttribute('value', escapeHtml(prop.code));
+          option.innerText = escapeHtml(prop.label);
+          fieldSelection.appendChild(option);
+        }
+      }
+    }).catch((error) => {
+      console.log(error);
+      alert('Error occurred.');
     });
+  };
+
+  // Set the input data if the save button is clicked
+  saveButton.onclick = () => {
+    const config = {};
+    if (!fieldSelection.value || fieldSelection.value === 'null') {
+      alert('The user selection field has not been selected.');
+      return false;
+    }
+    config.fieldSelection = fieldSelection.value;
+    config.bgColor = bgColor.value;
+    kintone.plugin.app.setConfig(config);
+    return true;
+  };
+
+  // Cancel the process if the cancel button is clicked
+  cancelButton.onclick = () => {
+    history.back();
+  };
+
+  setUserSelection().then(() => {
+    setDefault();
   });
-  $cancelButton.on('click', function() {
-    window.location.href = '../../' + kintone.app.getId() + '/plugin/';
-  });
-})(jQuery, kintone.$PLUGIN_ID);
+
+})(kintone.$PLUGIN_ID);
