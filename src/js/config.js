@@ -5,7 +5,7 @@
 
   // Get the elements
   const fieldSelection = document.getElementById('field-selection');
-  const bgColor = document.getElementById('bg-color');
+  const allowedExtensions = document.getElementById('allowed-extensions');
   const saveButton = document.getElementById('save');
   const cancelButton = document.getElementById('cancel');
 
@@ -24,12 +24,12 @@
     const conf = kintone.plugin.app.getConfig(PLUGIN_ID);
     if (conf) {
       fieldSelection.value = conf.fieldSelection;
-      bgColor.value = conf.bgColor;
+      allowedExtensions.value = conf.allowedExtensions;
     }
   };
 
-  // Set the user selection field
-  const setUserSelection = () => {
+  // Set the attachment fields
+  const setAttachmentFields = () => {
     const APP_ID = kintone.app.getId();
     const params = {
       app: APP_ID,
@@ -40,12 +40,36 @@
         if (!resp.properties[key]) {
           continue;
         }
-        const option = document.createElement('option');
         const prop = resp.properties[key];
-        if (prop.type === 'USER_SELECT') {
+        if (prop.type === 'FILE') {
+          const option = document.createElement('option');
           option.setAttribute('value', escapeHtml(prop.code));
           option.innerText = escapeHtml(prop.label);
           fieldSelection.appendChild(option);
+        }
+        if (prop.type === 'SUBTABLE') {
+          const subTable = prop.fields;
+          for (const subKey of Object.keys(subTable)) {
+            const subProp = subTable[subKey];
+            if (subProp.type === 'FILE') {
+              const option = document.createElement('option');
+              option.setAttribute('value', escapeHtml(prop.code + '.' + subProp.code));
+              option.innerText = escapeHtml(prop.label + ' ' + subProp.label);
+              fieldSelection.appendChild(option);
+            }
+          }
+        }
+        if (prop.type === 'GROUP') {
+          const group = prop.layout.subTable;
+          for (const groupKey of Object.keys(group)) {
+            const groupProp = group[groupKey];
+            if (groupProp.type === 'FILE') {
+              const option = document.createElement('option');
+              option.setAttribute('value', escapeHtml(prop.code + '.' + groupProp.code));
+              option.innerText = escapeHtml(prop.label + ' ' + groupProp.label);
+              fieldSelection.appendChild(option);
+            }
+          }
         }
       }
     }).catch((error) => {
@@ -58,11 +82,11 @@
   saveButton.onclick = () => {
     const config = {};
     if (!fieldSelection.value || fieldSelection.value === 'null') {
-      alert('The user selection field has not been selected.');
+      alert('The attachment field has not been selected.');
       return false;
     }
     config.fieldSelection = fieldSelection.value;
-    config.bgColor = bgColor.value;
+    config.allowedExtensions = allowedExtensions.value;
     kintone.plugin.app.setConfig(config);
     return true;
   };
@@ -72,7 +96,7 @@
     history.back();
   };
 
-  setUserSelection().then(() => {
+  setAttachmentFields().then(() => {
     setDefault();
   });
 

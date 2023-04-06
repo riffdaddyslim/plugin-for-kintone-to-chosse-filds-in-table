@@ -5,13 +5,12 @@
   "name": {
     "en": "plugin to_choose_multiple_attachment_fields_by_field_name"
   },
-  "icon": "image/icon.png",
   "description": {
     "en": "plugin that will allow the user to choose multiple attachment fields by field name and restrict the type of file able to be attached"
   },
+  "icon": "image/icon.png",
   "desktop": {
     "js": [
-      "https://js.cybozu.com/jquery/3.3.1/jquery.min.js",
       "js/desktop.js"
     ],
     "css": [
@@ -20,7 +19,7 @@
   "config": {
     "html": "html/config.html",
     "js": [
-      "https://js.cybozu.com/jquery/3.3.1/jquery.min.js",
+      "https://unpkg.com/@kintone/rest-api-client@latest/umd/KintoneRestAPIClient.min.js",
       "js/config.js"
     ],
     "css": [
@@ -28,7 +27,8 @@
       "css/config.css"
     ],
     "required_params": [
-      "message"
+      "fieldSelection",
+      "allowedExtensions"
     ]
   }
 }

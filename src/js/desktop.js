@@ -1,26 +1,63 @@
-jQuery.noConflict();
-
-(function($, PLUGIN_ID) {
+((PLUGIN_ID) => {
   'use strict';
 
-  kintone.events.on('app.record.index.show', function() {
-    var config = kintone.plugin.app.getConfig(PLUGIN_ID);
+  const config = kintone.plugin.app.getConfig(PLUGIN_ID);
+  const allowedExtensions = config.allowedExtensions || [];
 
-    var spaceElement = kintone.app.getHeaderSpaceElement();
-    if (spaceElement === null) {
-      throw new Error('The header element is unavailable on this page');
+  // Check if a file has an allowed extension
+  const hasAllowedExtension = (fileName) => {
+    const fileExtension = fileName.split('.').pop();
+    return allowedExtensions.includes(fileExtension);
+  };
+
+  // Add validation message for file type
+  const addValidationMessage = (fieldElement) => {
+    const messageElement = document.createElement('div');
+    messageElement.className = 'error-message';
+    messageElement.innerText = `Only files with extensions: ${allowedExtensions.join(', ')} are allowed.`;
+    fieldElement.parentNode.insertBefore(messageElement, fieldElement.nextSibling);
+  };
+
+  // Remove validation message for file type
+  const removeValidationMessage = (fieldElement) => {
+    const messageElement = fieldElement.parentNode.querySelector('.error-message');
+    if (messageElement) {
+      messageElement.remove();
     }
-    var fragment = document.createDocumentFragment();
-    var headingEl = document.createElement('h3');
-    var messageEl = document.createElement('p');
+  };
 
-    messageEl.classList.add('plugin-space-message');
-    messageEl.textContent = config.message;
-    headingEl.classList.add('plugin-space-heading');
-    headingEl.textContent = 'Hello kintone plugin!';
+  // Add file validation to a file input element
+  const addFileValidation = (fieldElement) => {
+    fieldElement.addEventListener('change', () => {
+      const file = fieldElement.files[0];
+      if (file && !hasAllowedExtension(file.name)) {
+        addValidationMessage(fieldElement);
+        fieldElement.value = '';
+      } else {
+        removeValidationMessage(fieldElement);
+      }
+    });
+  };
 
-    fragment.appendChild(headingEl);
-    fragment.appendChild(messageEl);
-    spaceElement.appendChild(fragment);
-  });
-})(jQuery, kintone.$PLUGIN_ID);
+  // Add file validation to all file input elements
+  const addValidationToAllFields = () => {
+    const attachmentFields = kintone.app.record.getSpaceElements('attachment');
+    attachmentFields.forEach((field) => {
+      const fileInputs = field.querySelectorAll('input[type="file"]');
+      fileInputs.forEach((fileInput) => {
+        addFileValidation(fileInput);
+      });
+    });
+
+    const tableFields = kintone.app.record.getRelatedRecordsTargetFields('attachment');
+    tableFields.forEach((tableField) => {
+      const fileInputs = tableField.querySelectorAll('input[type="file"]');
+      fileInputs.forEach((fileInput) => {
+        addFileValidation(fileInput);
+      });
+    });
+  };
+
+  addValidationToAllFields();
+
+})(kintone.$PLUGIN_ID);
