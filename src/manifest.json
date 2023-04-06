@@ -1,0 +1,34 @@
+{
+  "manifest_version": 1,
+  "version": 1,
+  "type": "APP",
+  "name": {
+    "en": "plugin that help to choose fields by field name and restrict the type of file to be attached"
+  },
+  "description": {
+    "en": "Plugin that will allow the user to choose multiple attachment fields by field name and restrict the type of file able to be attached. The plugin must work on multiple attachment fields, in field groups, and in tables. They must be able to add any type of file extension."
+  },
+  "icon": "image/icon.png",
+  "desktop": {
+    "js": [
+      "https://js.cybozu.com/jquery/3.3.1/jquery.min.js",
+      "js/desktop.js"
+    ],
+    "css": [
+    ]
+  },
+  "config": {
+    "html": "html/config.html",
+    "js": [
+      "https://js.cybozu.com/jquery/3.3.1/jquery.min.js",
+      "js/config.js"
+    ],
+    "css": [
+      "css/51-modern-default.css",
+      "css/config.css"
+    ],
+    "required_params": [
+      "message"
+    ]
+  }
+}
