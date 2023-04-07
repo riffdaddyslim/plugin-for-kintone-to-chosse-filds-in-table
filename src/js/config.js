@@ -6,7 +6,7 @@
   // Get the elements
   const fieldSelection = document.getElementById('field-selection');
   const allowedExtensions = document.getElementById('allowed-extensions');
-  const saveButton = document.getElementById('save');
+  const submitForm = document.getElementById('submit');
   const cancelButton = document.getElementById('cancel');
 
   // Escape HTML
@@ -22,8 +22,10 @@
   // Set the saved data if it exists
   const setDefault = () => {
     const conf = kintone.plugin.app.getConfig(PLUGIN_ID);
-    if (conf) {
+    if (conf.fieldSelection !== 'undefined') {
       fieldSelection.value = conf.fieldSelection;
+    }
+    if (conf.allowedExtensions !== 'undefined') {
       allowedExtensions.value = conf.allowedExtensions;
     }
   };
@@ -35,11 +37,15 @@
       app: APP_ID,
       preview: true
     };
+
     return client.app.getFormFields(params).then((resp) => {
+      console.log(resp, '===============resp==================');
+
       for (const key of Object.keys(resp.properties)) {
         if (!resp.properties[key]) {
           continue;
         }
+
         const prop = resp.properties[key];
         if (prop.type === 'FILE') {
           const option = document.createElement('option');
@@ -79,20 +85,24 @@
   };
 
   // Set the input data if the save button is clicked
-  saveButton.onclick = () => {
+  submitForm.onsubmit = (e) => {
+    e.preventDefault();
     const config = {};
     if (!fieldSelection.value || fieldSelection.value === 'null') {
       alert('The attachment field has not been selected.');
       return false;
     }
+
     config.fieldSelection = fieldSelection.value;
     config.allowedExtensions = allowedExtensions.value;
+
     kintone.plugin.app.setConfig(config);
     return true;
   };
 
   // Cancel the process if the cancel button is clicked
-  cancelButton.onclick = () => {
+  cancelButton.onclick = (e) => {
+    e.preventDefault();
     history.back();
   };
 

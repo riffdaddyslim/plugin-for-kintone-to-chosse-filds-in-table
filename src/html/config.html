@@ -2,7 +2,7 @@
     <h2 class="settings-heading">Settings for a plugin that will allow the user to choose multiple attachment fields by
         field name and restrict the type of file able to be attached</h2>
 
-    <form>
+    <form id="submit">
         <div class="block">
             <div class="kintoneplugin-title">Select Attachment Fields<span class="kintoneplugin-require">*</span></div>
             <div class="kintoneplugin-desc">Please choose the fields of the table by field name.</div>
@@ -12,14 +12,14 @@
         </div>
 
 
-        <div class="kintoneplugin-title">Allowed File Types</div>
+        <div class="kintoneplugin-title">Allowed File Types<span class="kintoneplugin-require">*</span></div>
         <div class="kintoneplugin-input-outer">
             <input type="text" id="allowed-extensions" class="kintoneplugin-input-text"
                    placeholder="Enter comma-separated file types">
         </div>
 
         <div class="block">
-            <button id="save" class="kintoneplugin-button-dialog-ok">Save</button>
+            <button class="kintoneplugin-button-dialog-ok">Save</button>
             <button id="cancel" class="kintoneplugin-button-dialog-cancel">Cancel</button>
         </div>
     </form>
