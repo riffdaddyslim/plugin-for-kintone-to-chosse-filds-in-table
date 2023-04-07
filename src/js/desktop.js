@@ -2,62 +2,40 @@
   'use strict';
 
   const config = kintone.plugin.app.getConfig(PLUGIN_ID);
-  const allowedExtensions = config.allowedExtensions || [];
 
-  // Check if a file has an allowed extension
-  const hasAllowedExtension = (fileName) => {
-    const fileExtension = fileName.split('.').pop();
-    return allowedExtensions.includes(fileExtension);
-  };
+  kintone.events.on(['app.record.detail.show', 'app.record.create.show', 'app.record.edit.show'], (event) => {
+    const record = event.record;
+    const attachmentFields = [];
 
-  // Add validation message for file type
-  const addValidationMessage = (fieldElement) => {
-    const messageElement = document.createElement('div');
-    messageElement.className = 'error-message';
-    messageElement.innerText = `Only files with extensions: ${allowedExtensions.join(', ')} are allowed.`;
-    fieldElement.parentNode.insertBefore(messageElement, fieldElement.nextSibling);
-  };
+    // Collect all attachment fields in the record
+    const collectAttachmentFields = (field) => {
+      if (field.type === 'FILE') {
+        attachmentFields.push(field);
+      }
+      if (field.type === 'SUBTABLE') {
+        field.value.forEach((row) => {
+          Object.values(row.value).forEach(collectAttachmentFields);
+        });
+      }
+      if (field.type === 'GROUP') {
+        field.element.childNodes.forEach((childNode) => {
+          const childField = kintone.app.record.getFieldElement(childNode.id);
+          collectAttachmentFields(childField);
+        });
+      }
+    };
+    Object.values(record).forEach(collectAttachmentFields);
 
-  // Remove validation message for file type
-  const removeValidationMessage = (fieldElement) => {
-    const messageElement = fieldElement.parentNode.querySelector('.error-message');
-    if (messageElement) {
-      messageElement.remove();
-    }
-  };
-
-  // Add file validation to a file input element
-  const addFileValidation = (fieldElement) => {
-    fieldElement.addEventListener('change', () => {
-      const file = fieldElement.files[0];
-      if (file && !hasAllowedExtension(file.name)) {
-        addValidationMessage(fieldElement);
-        fieldElement.value = '';
-      } else {
-        removeValidationMessage(fieldElement);
+    // Loop through each attachment field and set the allowed file extensions
+    attachmentFields.forEach((field) => {
+      const fieldName = field.name;
+      const allowedExtensions = config.allowedExtensions.split(',');
+      const fileInput = kintone.app.record.getFieldElement(fieldName);
+      if (fileInput) {
+        fileInput.accept = allowedExtensions.map((ext) => '.' + ext).join(',');
       }
     });
-  };
-
-  // Add file validation to all file input elements
-  const addValidationToAllFields = () => {
-    const attachmentFields = kintone.app.record.getSpaceElements('attachment');
-    attachmentFields.forEach((field) => {
-      const fileInputs = field.querySelectorAll('input[type="file"]');
-      fileInputs.forEach((fileInput) => {
-        addFileValidation(fileInput);
-      });
-    });
-
-    const tableFields = kintone.app.record.getRelatedRecordsTargetFields('attachment');
-    tableFields.forEach((tableField) => {
-      const fileInputs = tableField.querySelectorAll('input[type="file"]');
-      fileInputs.forEach((fileInput) => {
-        addFileValidation(fileInput);
-      });
-    });
-  };
-
-  addValidationToAllFields();
+    return event;
+  });
 
 })(kintone.$PLUGIN_ID);

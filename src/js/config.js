@@ -39,8 +39,6 @@
     };
 
     return client.app.getFormFields(params).then((resp) => {
-      console.log(resp, '===============resp==================');
-
       for (const key of Object.keys(resp.properties)) {
         if (!resp.properties[key]) {
           continue;
