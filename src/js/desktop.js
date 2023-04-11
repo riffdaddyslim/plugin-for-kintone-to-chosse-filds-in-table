@@ -3,39 +3,111 @@
 
   const config = kintone.plugin.app.getConfig(PLUGIN_ID);
 
-  kintone.events.on(['app.record.detail.show', 'app.record.create.show', 'app.record.edit.show'], (event) => {
+  const restrictFileType = (fileType) => {
+    const allowedExtensions = config.allowedExtensions;
+    const allowedExtensionsArr = allowedExtensions.split(',').map(el => el.trim());
+    const fieldSelection = config.fieldSelection;
+
+
+    console.log(fileType, '=======fileType=====');
+    console.log(allowedExtensions, '=======allowedExtensions=====');
+    console.log(allowedExtensionsArr, '=======allowedExtensionsArr=====');
+    console.log(fieldSelection, '=======fieldSelection=====');
+
+    for (let i of fileType) {
+      const fieldName = Object.keys(i).join();
+      const allowedInsetedType = Object.values(i).join();
+      console.log(fieldName, '=========i============');
+
+
+      if (fieldName === fieldSelection) {
+        console.log(allowedInsetedType, '================!!!!!!!!!!!allowedInsetedType!!!!!!!!!!!!===========');
+        if (allowedExtensionsArr.includes(allowedInsetedType)) {
+          console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        } else {
+          return alert(`Olnly allowed ${allowedExtensions} types of files`);
+        }
+      }
+    }
+  };
+
+
+  // app.record.detail.show - event for individual item
+  kintone.events.on('app.record.detail.show', (event) => {
     const record = event.record;
-    const attachmentFields = [];
+    const tableFiles = record.Table.value[0].value;
+    let attachmentFields = [];
 
-    // Collect all attachment fields in the record
-    const collectAttachmentFields = (field) => {
-      if (field.type === 'FILE') {
-        attachmentFields.push(field);
+    for (let key in tableFiles) {
+      if (tableFiles[key].type === 'FILE') {
+        let obj = {};
+        obj[key] = tableFiles[key].value[0]?.contentType;
+        attachmentFields.push(obj);
       }
-      if (field.type === 'SUBTABLE') {
-        field.value.forEach((row) => {
-          Object.values(row.value).forEach(collectAttachmentFields);
-        });
-      }
-      if (field.type === 'GROUP') {
-        field.element.childNodes.forEach((childNode) => {
-          const childField = kintone.app.record.getFieldElement(childNode.id);
-          collectAttachmentFields(childField);
-        });
-      }
-    };
-    Object.values(record).forEach(collectAttachmentFields);
+    }
 
-    // Loop through each attachment field and set the allowed file extensions
-    attachmentFields.forEach((field) => {
-      const fieldName = field.name;
-      const allowedExtensions = config.allowedExtensions.split(',');
-      const fileInput = kintone.app.record.getFieldElement(fieldName);
-      if (fileInput) {
-        fileInput.accept = allowedExtensions.map((ext) => '.' + ext).join(',');
-      }
-    });
+    console.log(attachmentFields, '==================attachmentFields==============');
+
+    //
+    // var body = {'app': 2};
+    // kintone.api(kintone.api.url('/k/v1/app/form/layout', true), 'GET', body, function(resp) {
+    //   const table = resp.layout.find(el => el.code === 'Table');
+    //   const field = table.fields.filter(el => el.type === 'FILE');
+    //
+    //
+    //   console.log(resp, '==================resp==============');
+    //   console.log(table, '==================table==============');
+    //   console.log(field, '==================field==============');
+    //
+    // }, function(error) {
+    //   console.log(error, '==================err==============');
+    // });
+
+
+    console.log(record, '=================redord================');
+    console.log(tableFiles, '=================tableFiles =================');
+
+    restrictFileType(attachmentFields);
     return event;
   });
+
+
+  kintone.events.on('app.record.create.show', (event) => {
+    const record = event.record;
+    const tableFiles = record.Table.value[0].value;
+    let attachmentFields = [];
+
+    for (let key in tableFiles) {
+      if (tableFiles[key].type === 'FILE') {
+        let obj = {};
+        obj[key] = tableFiles[key].value[0]?.contentType;
+        attachmentFields.push(obj);
+      }
+    }
+
+    restrictFileType(attachmentFields);
+    return event;
+  });
+
+
+  kintone.events.on('app.record.edit.show', (event) => {
+    const record = event.record;
+    const tableFiles = record.Table.value[0].value;
+    let attachmentFields = [];
+
+    for (let key in tableFiles) {
+      if (tableFiles[key].type === 'FILE') {
+        let obj = {};
+        obj[key] = tableFiles[key].value[0]?.contentType;
+        attachmentFields.push(obj);
+      }
+    }
+
+    restrictFileType(attachmentFields);
+    return event;
+  });
+
+
+
 
 })(kintone.$PLUGIN_ID);

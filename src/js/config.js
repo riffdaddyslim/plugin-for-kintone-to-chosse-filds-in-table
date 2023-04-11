@@ -22,7 +22,9 @@
   // Set the saved data if it exists
   const setDefault = () => {
     const conf = kintone.plugin.app.getConfig(PLUGIN_ID);
-    if (conf.fieldSelection !== 'undefined') {
+    console.log(conf, '===============conf==================');
+
+    if (!conf.fieldSelection === undefined || conf.fieldSelection !== 'undefined') {
       fieldSelection.value = conf.fieldSelection;
     }
     if (conf.allowedExtensions !== 'undefined') {
@@ -39,6 +41,8 @@
     };
 
     return client.app.getFormFields(params).then((resp) => {
+      console.log(resp, '===============resp==================');
+
       for (const key of Object.keys(resp.properties)) {
         if (!resp.properties[key]) {
           continue;
@@ -91,8 +95,15 @@
       return false;
     }
 
+    console.log(config, '===============config1==================');
+
     config.fieldSelection = fieldSelection.value;
     config.allowedExtensions = allowedExtensions.value;
+
+    // config.fieldSelection = fieldSelection.value.split(',').map(el => el.trim());
+    // config.allowedExtensions = allowedExtensions.value.split(',').map(el => el.trim());
+
+    console.log(config, '===============config2==================');
 
     kintone.plugin.app.setConfig(config);
     return true;
