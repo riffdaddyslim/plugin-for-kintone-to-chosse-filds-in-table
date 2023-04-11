@@ -11,13 +11,12 @@
   };
 
 
-  kintone.events.on(['app.record.detail.show', 'app.record.create.show', 'app.record.edit.show'], (event) => {
+  kintone.events.on(['app.record.detail.show', 'app.record.create.show', 'app.record.create.submit', 'app.record.edit.show'], (event) => {
     const record = event.record;
     const tableFiles = record.Table.value[0].value;
 
     for (let key in tableFiles) {
       if (tableFiles[key].type === 'FILE') {
-        let obj = {};
         let values = tableFiles[key].value;
         let attachmentField;
 
@@ -35,12 +34,11 @@
       }
     }
 
-
-    //
     // var body = {'app': 2};
+    // let field;
     // kintone.api(kintone.api.url('/k/v1/app/form/layout', true), 'GET', body, function(resp) {
     //   const table = resp.layout.find(el => el.code === 'Table');
-    //   const field = table.fields.filter(el => el.type === 'FILE');
+    //   field = table.fields.filter(el => el.type === 'FILE');
     //
     //
     //   console.log(resp, '==================resp==============');
