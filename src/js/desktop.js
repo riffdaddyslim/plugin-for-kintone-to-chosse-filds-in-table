@@ -9,6 +9,7 @@
     const fieldSelection = config.fieldSelection;
 
 
+    console.log(fieldSelection);
     console.log(fileType, '=======fileType=====');
     console.log(allowedExtensions, '=======allowedExtensions=====');
     console.log(allowedExtensionsArr, '=======allowedExtensionsArr=====');
@@ -20,7 +21,7 @@
       console.log(fieldName, '=========i============');
 
 
-      if (fieldName === fieldSelection) {
+      // if (fieldName === fieldSelection) {
         console.log(allowedInsetedType, '================!!!!!!!!!!!allowedInsetedType!!!!!!!!!!!!===========');
         if (allowedExtensionsArr.includes(allowedInsetedType)) {
           console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
@@ -29,7 +30,7 @@
         }
       }
     }
-  };
+  // };
 
 
   // app.record.detail.show - event for individual item
@@ -41,7 +42,18 @@
     for (let key in tableFiles) {
       if (tableFiles[key].type === 'FILE') {
         let obj = {};
-        obj[key] = tableFiles[key].value[0]?.contentType;
+
+        let values = tableFiles[key].value;
+        let temp;
+
+        if (values.length > 0) {
+          for (let value of values) {
+            temp = value.contentType;
+            console.log(temp, '================temp =============');
+          }
+        }
+        obj[key] = temp;
+
         attachmentFields.push(obj);
       }
     }
@@ -106,8 +118,6 @@
     restrictFileType(attachmentFields);
     return event;
   });
-
-
 
 
 })(kintone.$PLUGIN_ID);
